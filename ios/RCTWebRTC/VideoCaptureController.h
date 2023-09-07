@@ -13,5 +13,6 @@
 - (void)startCapture;
 - (void)stopCapture;
 - (void)switchCamera;
+- (void)applyZoomFactor:(CGFloat)zoomFactor;
 
 @end

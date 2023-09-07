@@ -73,7 +73,7 @@
 
         return;
     }
-
+    
     AVCaptureDeviceFormat *format = [self selectFormatForDevice:self.device
                                                 withTargetWidth:self.width
                                                withTargetHeight:self.height];
@@ -84,7 +84,7 @@
     }
 
     self.selectedFormat = format;
-
+    
     RCTLog(@"[VideoCaptureController] Capture will start");
 
     // Starting the capture happens on another thread. Wait for it.
@@ -133,6 +133,19 @@
     self.device = nil;
 
     [self startCapture];
+}
+
+- (void)applyZoomFactor:(CGFloat)zoomFactor {
+    if (!self.device) {
+        RCTLogWarn(@"[VideoCaptureController] No capture devices found!");
+        return;
+    }
+    
+    CGFloat minZoomFactor = self.device.minAvailableVideoZoomFactor;
+    CGFloat maxZoomFactor = self.device.maxAvailableVideoZoomFactor;
+    CGFloat clampedZoomFactor = MAX(minZoomFactor, MIN(zoomFactor, maxZoomFactor));
+    
+    [self.device setVideoZoomFactor:clampedZoomFactor];
 }
 
 #pragma mark NSKeyValueObserving

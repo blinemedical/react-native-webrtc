@@ -374,6 +374,15 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetVolume : (nonnull NSNumber *)pcId : (nonnul
     }
 }
 
+RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints: (nonnull NSNumber *)pcId : (nonnull NSString *)trackID : (NSDictionary *)constraints) {
+    RTCMediaStreamTrack *track = [self trackForId:trackID pcId:pcId];
+    if (track && [track.kind isEqualToString:@"video"]) {
+        CGFloat zoomFactor = [constraints[@"zoom"] floatValue];
+        RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+        [(VideoCaptureController *)videoTrack.captureController applyZoomFactor:zoomFactor];
+    }
+}
+
 #pragma mark - Helpers
 
 - (RTCMediaStreamTrack *)trackForId:(nonnull NSString *)trackId pcId:(nonnull NSNumber *)pcId {
