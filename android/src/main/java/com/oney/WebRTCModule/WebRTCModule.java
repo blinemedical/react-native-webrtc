@@ -837,6 +837,24 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         });
     }
 
+    @ReactMethod
+    public void mediaStreamTrackApplyConstraints(int pcId, String id, ReadableMap constraints) {
+        ThreadUtils.runOnExecutor(() -> {
+            MediaStreamTrack track = getTrack(pcId, id);
+            if (track == null) {
+                Log.d(TAG, "mediaStreamTrackApplyConstraints() could not find track " + id);
+                return;
+            }
+
+            if (!(track instanceof VideoTrack)) {
+                Log.d(TAG, "mediaStreamTrackApplyConstraints() track is not a VideoTrack!");
+                return;
+            }
+
+            VideoTrack videoTrack = (VideoTrack)track;
+        });
+    }
+
     /**
      * This serializes the transceivers current direction and mid and returns them
      * for update when an sdp negotiation/renegotiation happens

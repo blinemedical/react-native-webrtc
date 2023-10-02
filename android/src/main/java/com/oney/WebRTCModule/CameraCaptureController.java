@@ -70,6 +70,14 @@ public class CameraCaptureController extends AbstractVideoCaptureController {
         }
     }
 
+    public void applyZoomFactor(float zoomFactor) {
+        if (!(videoCapturer instanceof CameraVideoCapturer)) {
+            return;
+        }
+
+        CameraVideoCapturer capturer = (CameraVideoCapturer) videoCapturer;
+    }
+
     @Override
     protected VideoCapturer createVideoCapturer() {
         String deviceId = ReactBridgeUtil.getMapStrValue(this.constraints, "deviceId");

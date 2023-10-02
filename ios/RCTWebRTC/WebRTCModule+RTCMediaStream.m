@@ -56,7 +56,7 @@
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
     NSMutableArray<NSDictionary *> *trackInfos = [NSMutableArray array];
-
+    
     for (RTCMediaStreamTrack *track in tracks) {
         if ([track.kind isEqualToString:@"audio"]) {
             [mediaStream addAudioTrack:(RTCAudioTrack *)track];
@@ -182,7 +182,7 @@ RCT_EXPORT_METHOD(getUserMedia
     if (constraints[@"video"]) {
         videoTrack = [self createVideoTrack:constraints];
     }
-
+    
     if (audioTrack == nil && videoTrack == nil) {
         // Fail with DOMException with name AbortError as per:
         // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
@@ -205,7 +205,7 @@ RCT_EXPORT_METHOD(getUserMedia
         } else if ([track.kind isEqualToString:@"video"]) {
             [mediaStream addVideoTrack:(RTCVideoTrack *)track];
         }
-
+        
         NSString *trackId = track.trackId;
 
         self.localTracks[trackId] = track;
