@@ -145,7 +145,16 @@
     CGFloat maxZoomFactor = self.device.maxAvailableVideoZoomFactor;
     CGFloat clampedZoomFactor = MAX(minZoomFactor, MIN(zoomFactor, maxZoomFactor));
     
+    NSError *error = nil;
+    [self.device lockForConfiguration:&error];
+    if (error) {
+        RCTLog(@"[VideoCaptureController] Could not lock device for configuration: %@", error);
+        return;
+    }
+
     [self.device setVideoZoomFactor:clampedZoomFactor];
+
+    [self.device unlockForConfiguration];
 }
 
 #pragma mark NSKeyValueObserving
