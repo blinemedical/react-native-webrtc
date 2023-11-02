@@ -11,6 +11,7 @@ if (WebRTCModule === null) {
 import { setupNativeEvents } from './EventEmitter';
 import Logger from './Logger';
 import mediaDevices from './MediaDevices';
+import MediaRecorder from './MediaRecorder';
 import MediaStream from './MediaStream';
 import MediaStreamTrack from './MediaStreamTrack';
 import MediaStreamTrackEvent from './MediaStreamTrackEvent';
@@ -40,6 +41,7 @@ export {
     RTCRtpReceiver,
     RTCRtpSender,
     RTCErrorEvent,
+    MediaRecorder,
     MediaStream,
     MediaStreamTrack,
     mediaDevices,
@@ -68,6 +70,7 @@ function registerGlobals(): void {
     global.RTCRtpReceiver = RTCRtpReceiver;
     global.RTCRtpSender = RTCRtpReceiver;
     global.RTCSessionDescription = RTCSessionDescription;
+    global.MediaRecorder = MediaRecorder;
     global.MediaStream = MediaStream;
     global.MediaStreamTrack = MediaStreamTrack;
     global.MediaStreamTrackEvent = MediaStreamTrackEvent;

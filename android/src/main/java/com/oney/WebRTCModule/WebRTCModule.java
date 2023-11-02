@@ -1,5 +1,6 @@
 package com.oney.WebRTCModule;
 
+import android.os.Environment;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -27,6 +28,7 @@ import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +41,8 @@ import java.util.concurrent.ExecutionException;
 public class WebRTCModule extends ReactContextBaseJavaModule {
     static final String TAG = WebRTCModule.class.getCanonicalName();
 
+    private AudioDeviceModule audioDeviceModule;
+
     PeerConnectionFactory mFactory;
     VideoEncoderFactory mVideoEncoderFactory;
     VideoDecoderFactory mVideoDecoderFactory;
@@ -47,6 +51,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     private final SparseArray<PeerConnectionObserver> mPeerConnectionObservers;
     final Map<String, MediaStream> localStreams;
 
+    final Map<String, MediaRecorderImpl> mediaRecorders;
+
     private final GetUserMediaImpl getUserMediaImpl;
 
     public WebRTCModule(ReactApplicationContext reactContext) {
@@ -54,10 +60,11 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
 
         mPeerConnectionObservers = new SparseArray<>();
         localStreams = new HashMap<>();
+        mediaRecorders = new HashMap<>();
 
         WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
 
-        AudioDeviceModule adm = options.audioDeviceModule;
+        audioDeviceModule = options.audioDeviceModule;
         VideoEncoderFactory encoderFactory = options.videoEncoderFactory;
         VideoDecoderFactory decoderFactory = options.videoDecoderFactory;
         Loggable injectableLogger = options.injectableLogger;
@@ -87,15 +94,15 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             }
         }
 
-        if (adm == null) {
-            adm = JavaAudioDeviceModule.builder(reactContext).setEnableVolumeLogger(false).createAudioDeviceModule();
+        if (audioDeviceModule == null) {
+            audioDeviceModule = JavaAudioDeviceModule.builder(reactContext).setEnableVolumeLogger(false).createAudioDeviceModule();
         }
 
         Log.d(TAG, "Using video encoder factory: " + encoderFactory.getClass().getCanonicalName());
         Log.d(TAG, "Using video decoder factory: " + decoderFactory.getClass().getCanonicalName());
 
         mFactory = PeerConnectionFactory.builder()
-                           .setAudioDeviceModule(adm)
+                           .setAudioDeviceModule(audioDeviceModule)
                            .setVideoEncoderFactory(encoderFactory)
                            .setVideoDecoderFactory(decoderFactory)
                            .createPeerConnectionFactory();
@@ -1321,5 +1328,60 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void removeListeners(Integer count) {
         // Keep: Required for RN built in Event Emitter Calls.
+    }
+
+    @ReactMethod
+    public void mediaRecorderCreate(String id, String streamId) {
+        MediaStream stream = localStreams.get(streamId);
+        VideoTrack videoTrack = stream.videoTracks.get(0);
+
+        if(videoTrack == null) {
+            Log.e(TAG, "no video track found on stream");
+            return;
+        }
+
+        MediaRecorderImpl recorder = new MediaRecorderImpl(id, videoTrack, inputAudioIntercepter);
+        mediaRecorders.put(id, recorder);
+    }
+
+    // Currently starting just takes in the id to get the proper instantiation of the mediarecorderimpl
+    // We should probably for the sake of usefulness and tracking on the SCMR side also pass in the
+    // path we want to use here instead of having the library decide. We can use react-native-fs for
+    // this.
+    //
+    // With that being said I'm still alright with maybe locking down the file type to mp4 or whatever
+    // we decide is best, and potentially still using the MediaRecorder ID for the file name and passing
+    // that back on stop
+    @ReactMethod
+    public void mediaRecorderStart(String id) {
+        MediaRecorderImpl recorder = mediaRecorders.get(id);
+
+        if (recorder == null) {
+            Log.e(TAG, "No valid media recorder with id: " + id);
+            return;
+        }
+
+        try {
+            // TODO: Create file using recorder and stream id
+
+            File outputFile = new File(this.getReactApplicationContext().getExternalFilesDir(null) + "/recordings/" + id + ".mp4");
+
+            recorder.start(outputFile);
+        } catch (Exception e) {
+            Log.wtf(TAG, e);
+        }
+    }
+
+    @ReactMethod
+    public void mediaRecorderStop(String id) {
+        MediaRecorderImpl recorder = mediaRecorders.get(id);
+
+        if (recorder == null) {
+            Log.e(TAG, "No valid media recorder with id: " + id);
+            return;
+        }
+
+        File outputFile = recorder.stop();
+        Log.i(TAG, "MediaRecorder wrote file to: " + outputFile.getAbsolutePath());
     }
 }
