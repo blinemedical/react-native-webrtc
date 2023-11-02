@@ -62,6 +62,14 @@ public class VideoAudioFileRenderer implements VideoSink, SamplesReadyCallback {
     private long videoFrameStart = 0L;
 
     // Just used to know if we are currently rendering and if we have started muxing
+    //
+    // isRunning IS LIKELY NOT NEEDED. The checks associated with it are more for if we are
+    // consuming a stream vs just using the local stream. Still it's not the worst fallback if
+    // anything client side goes wrong to help somewhat kill the actual writing of data into
+    // the file
+    //
+    // Definitely some additional checks against isRunning could be used though to not accidentally
+    // try to write bad/additional data if we don't want to
     private boolean isRunning = true;
     private boolean muxerStarted = false;
 
