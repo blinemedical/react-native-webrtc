@@ -38,8 +38,6 @@ export default class MediaRecorder {
         this.stream = mediaStream;
         this.eventEmitter = new EventEmitter();
         this.isStarted = false;
-
-        this.eventEmitter.addListener('stop', this.onstop);
     }
 
     /**
@@ -72,10 +70,6 @@ export default class MediaRecorder {
     }
 
     /**
-     * On 'stop' event handler; 'stop' is fired when the recording stops
+     * TODO: add onstop event handler
      */
-    onstop = (event: Event) => {
-        // TODO: save the file to the filePath specified when we started recording
-        throw Error('Unimplemented');
-    };
 }
