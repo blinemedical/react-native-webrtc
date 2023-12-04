@@ -135,8 +135,16 @@ class MediaStreamTrack extends defineCustomEventTarget(...MEDIA_STREAM_TRACK_EVE
         WebRTCModule.mediaStreamTrackSetVolume(this.remote ? this._peerConnectionId : -1, this.id, volume);
     }
 
-    applyConstraints(): never {
-        throw new Error('Not implemented.');
+    applyConstraints(constraints: object) {
+        if (this.kind !== 'video') {
+            throw new Error('Only implemented for video tracks');
+        }
+
+        if (!('zoom' in constraints)) {
+            log.warn('Only zoom is supported for applyConstraints on video tracks');
+        }
+
+        WebRTCModule.mediaStreamTrackApplyConstraints(this.remote ? this._peerConnectionId : -1, this.id, constraints);
     }
 
     clone(): never {
