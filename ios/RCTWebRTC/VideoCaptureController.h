@@ -14,5 +14,6 @@
 - (void)stopCapture;
 - (void)switchCamera;
 - (void)applyZoomFactor:(CGFloat)zoomFactor;
+- (NSDictionary *)getZoomCapabilities;
 
 @end

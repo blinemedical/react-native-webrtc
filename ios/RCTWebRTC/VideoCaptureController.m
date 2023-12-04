@@ -157,6 +157,19 @@
     [self.device unlockForConfiguration];
 }
 
+- (NSDictionary *)getZoomCapabilities {
+    if (!self.device) {
+        RCTLogWarn(@"[VideoCaptureController] No capture devices found!");
+        return @{};
+    }
+    
+    return @{
+        @"min" : @(self.device.minAvailableVideoZoomFactor),
+        @"max" : @(self.device.maxAvailableVideoZoomFactor),
+        @"step" : @(0.1)
+    };
+}
+
 #pragma mark NSKeyValueObserving
 
 - (void)observeValueForKeyPath:(NSString *)keyPath

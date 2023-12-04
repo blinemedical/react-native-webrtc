@@ -144,6 +144,7 @@ class MediaStreamTrack extends defineCustomEventTarget(...MEDIA_STREAM_TRACK_EVE
             log.warn('Only zoom is supported for applyConstraints on video tracks');
         }
 
+        this._constraints = Object.assign(this._constraints, constraints);
         WebRTCModule.mediaStreamTrackApplyConstraints(this.remote ? this._peerConnectionId : -1, this.id, constraints);
     }
 
@@ -151,8 +152,12 @@ class MediaStreamTrack extends defineCustomEventTarget(...MEDIA_STREAM_TRACK_EVE
         throw new Error('Not implemented.');
     }
 
-    getCapabilities(): never {
-        throw new Error('Not implemented.');
+    getCapabilities(): Promise<object> {
+        if (this.kind !== 'video') {
+            throw new Error('Only implemented for video tracks');
+        }
+
+        return new Promise((resolve) => WebRTCModule.mediaStreamTrackGetCapabilities(this.remote ? this._peerConnectionId : -1, this.id, resolve));
     }
 
     getConstraints() {

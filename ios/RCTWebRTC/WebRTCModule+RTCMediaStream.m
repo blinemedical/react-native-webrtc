@@ -1,4 +1,5 @@
 #import <objc/runtime.h>
+#import <React/RCTLog.h>
 
 #import <WebRTC/RTCCameraVideoCapturer.h>
 #import <WebRTC/RTCMediaConstraints.h>
@@ -381,6 +382,24 @@ RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints: (nonnull NSNumber *)pcId : (
         RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
         [(VideoCaptureController *)videoTrack.captureController applyZoomFactor:zoomFactor];
     }
+}
+
+RCT_EXPORT_METHOD(mediaStreamTrackGetCapabilities: (nonnull NSNumber *)pcId : (nonnull NSString *)trackID :
+                  (RCTResponseSenderBlock)callback) {
+    RTCMediaStreamTrack *track = [self trackForId:trackID pcId:pcId];
+    
+    if (track && [track.kind isEqualToString:@"video"]) {
+        RTCVideoTrack *videoTrack = (RTCVideoTrack*)track;
+        NSDictionary *zoomCapabilities = [(VideoCaptureController *)videoTrack.captureController getZoomCapabilities];
+        
+        callback(@[@{
+            @"zoom" : zoomCapabilities
+        }]);
+        return;
+    }
+
+    RCTLogWarn(@"getCapabilities only supported for video track");
+    callback(@[]);
 }
 
 #pragma mark - Helpers
