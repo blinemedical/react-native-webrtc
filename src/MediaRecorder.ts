@@ -1,6 +1,9 @@
-import { EventEmitter } from 'react-native';
+import { NativeModules } from 'react-native';
 
 import MediaStream from './MediaStream';
+import { uniqueID } from './RTCUtil';
+
+const { WebRTCModule } = NativeModules;
 
 // This could be used as a second param in the constructor, but we don't care yet
 interface RecorderOptions {
@@ -26,18 +29,20 @@ export default class MediaRecorder {
     public state: RecorderState;
     public videoBitsPerSecond: number;
     public audioBitsPerSecond: number;
-    private eventEmitter: EventEmitter;
     private isStarted: boolean;
-
+    private id: string;
 
     constructor(mediaStream: MediaStream) {
+        this.stream = mediaStream;
+        this.id = uniqueID();
+
         this.mimeType = 'video/avc'; // this is what flutter uses
         this.state = RecorderState.inactive;
         this.videoBitsPerSecond = 250000; // taken from example in specs
         this.audioBitsPerSecond = 128000; // taken from example in specs
-        this.stream = mediaStream;
-        this.eventEmitter = new EventEmitter();
         this.isStarted = false;
+
+        WebRTCModule.mediaRecorderCreate(this.id, this.stream.id);
     }
 
     /**
@@ -48,9 +53,13 @@ export default class MediaRecorder {
      * @param filePath The path where we'll save the file
      */
     start(filePath) {
-        // TODO: start recording, and save the path
-        // use react-native-fs for filePath
-        throw Error('Unimplemented');
+        // TODO: use react-native-fs for filePath
+        try {
+            WebRTCModule.mediaRecorderStart(this.id, filePath);
+            this.isStarted = true;
+        } catch (e) {
+            console.log(MediaRecorder.name + ' start(), ' + e);
+        }
     }
 
     /**
@@ -60,16 +69,16 @@ export default class MediaRecorder {
         // TODO: stop recording, fire stop event
         // The stop event would be preceeded by a `dataavailable` event, but we're
         // not implementing that.
-        throw Error('Unimplemented');
 
         if (this.isStarted) {
-            this.eventEmitter.emit('stop');
+            try {
+                WebRTCModule.mediaRecorderStop(this.id);
+                this.isStarted = false;
+            } catch (e) {
+                console.log(MediaRecorder.name + ' stop(), ' + e);
+            }
         } else {
             throw Error('Cannot stop recording because recording hasn\'t started yet');
         }
     }
-
-    /**
-     * TODO: add onstop event handler
-     */
 }
