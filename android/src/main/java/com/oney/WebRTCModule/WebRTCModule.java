@@ -27,6 +27,8 @@ import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     // Need to expose the peer connection codec factories here to get capabilities
     private final SparseArray<PeerConnectionObserver> mPeerConnectionObservers;
     final Map<String, MediaStream> localStreams;
+    final Map<String, MediaRecorderImpl> mediaRecorders;
 
     private final GetUserMediaImpl getUserMediaImpl;
 
@@ -54,6 +57,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
 
         mPeerConnectionObservers = new SparseArray<>();
         localStreams = new HashMap<>();
+        mediaRecorders = new HashMap<>();
 
         WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
 
@@ -1321,5 +1325,66 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void removeListeners(Integer count) {
         // Keep: Required for RN built in Event Emitter Calls.
+    }
+
+    @ReactMethod
+    public void mediaRecorderCreate(String recorderId, String streamId) {
+        ThreadUtils.runOnExecutor(() -> {
+            // Get local media stream
+            if (localStreams.isEmpty()) {
+                Log.d(TAG, "mediaRecorderCreate() there are no local streams");
+                return;
+            }
+            MediaStream mediaStream = localStreams.get(streamId);
+
+            // Get video track from local media stream
+            // Note: The order of the tracks is not defined by the specification,
+            // and may not be the same from one call to getVideoTracks() to another.
+            VideoTrack videoTrack = mediaStream.videoTracks.get(0);
+            if (videoTrack == null) {
+                Log.d(TAG, "mediaRecorderCreate() videoTrack is null");
+                return;
+            }
+
+            // Create new media recorder
+            MediaRecorderImpl recorder = new MediaRecorderImpl(recorderId, videoTrack);
+            mediaRecorders.put(recorderId, recorder);
+        });
+    }
+
+    @ReactMethod
+    public void mediaRecorderStart(String recorderId, String filePath) {
+        ThreadUtils.runOnExecutor(() -> {
+            // Get media recorder with specified recorderId
+            MediaRecorderImpl recorder = mediaRecorders.get(recorderId);
+            if (recorder == null) {
+                Log.e(TAG, "mediaRecorderStart() no valid media recorder with id: " + recorderId);
+                return;
+            }
+
+            // Create file using specified filePath
+            try {
+                File outputFile = new File(filePath);
+                recorder.start(outputFile);
+            } catch (Exception e) {
+                Log.wtf(TAG, "mediaRecorderStart(), " + e);
+            }
+        });
+    }
+
+    @ReactMethod
+    public void mediaRecorderStop(String recorderId) {
+        ThreadUtils.runOnExecutor(() -> {
+            // Get the media recorder with specified recorderId
+            MediaRecorderImpl recorder = mediaRecorders.get(recorderId);
+
+            if (recorder == null) {
+                Log.e(TAG, "mediaRecorderStop() no valid media recorder with id: " + recorderId);
+                return;
+            }
+
+            recorder.stop();
+            mediaRecorders.remove(recorderId);
+        });
     }
 }
