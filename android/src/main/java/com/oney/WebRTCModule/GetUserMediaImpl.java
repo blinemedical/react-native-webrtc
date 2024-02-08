@@ -343,6 +343,19 @@ class GetUserMediaImpl {
         successCallback.accept(streamId, tracksInfo);
     }
 
+    HashMap<String, Integer> getVideoTrackInfo(MediaStreamTrack track) {
+        HashMap trackInfo = new HashMap();
+        String trackId = track.id();
+
+        if (track instanceof VideoTrack) {
+            TrackPrivate tp = tracks.get(trackId);
+            AbstractVideoCaptureController vcc = tp.videoCaptureController;
+            trackInfo.put("frameRate", vcc.getFrameRate());
+        }
+
+        return trackInfo;
+    }
+
     private VideoTrack createScreenTrack() {
         DisplayMetrics displayMetrics = DisplayUtils.getDisplayMetrics(reactContext.getCurrentActivity());
         int width = displayMetrics.widthPixels;
