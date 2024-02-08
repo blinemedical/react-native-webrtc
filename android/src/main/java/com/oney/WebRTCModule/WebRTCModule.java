@@ -1449,9 +1449,12 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 Log.d(TAG, "mediaRecorderCreate() videoTrack is null");
                 return;
             }
+            
+            // Get track info
+            HashMap<String, Integer> videoTrackInfo = getUserMediaImpl.getVideoTrackInfo(videoTrack);
 
             // Create new media recorder
-            MediaRecorderImpl recorder = new MediaRecorderImpl(recorderId, videoTrack);
+            MediaRecorderImpl recorder = new MediaRecorderImpl(recorderId, videoTrack, videoTrackInfo);
             mediaRecorders.put(recorderId, recorder);
         });
     }
