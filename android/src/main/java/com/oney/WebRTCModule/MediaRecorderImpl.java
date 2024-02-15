@@ -12,6 +12,7 @@ public class MediaRecorderImpl {
     private final VideoTrack videoTrack;
     private final HashMap videoTrackInfo;
     private File file;
+    private AudioSamplesInterceptor audioSamplesInterceptor;
 
     /**
      * VideoAudioFileRenderer is heavily influenced by Flutter's webRTC implementation
@@ -24,12 +25,19 @@ public class MediaRecorderImpl {
      * 
      * @param id Id
      * @param videoTrack Video track
+     * @param videoTrackInfo Necessary video track info, like frame rate
      * @param interceptor Eventually we'll add this param as an AudioSamplesInterceptor to pipe audio
      */
-    protected MediaRecorderImpl(String id, VideoTrack videoTrack, HashMap<String, Integer> videoTrackInfo) {
+    protected MediaRecorderImpl(
+        String id,
+        VideoTrack videoTrack,
+        HashMap<String, Integer> videoTrackInfo,
+        AudioSamplesInterceptor interceptor
+    ) {
         this.id = id;
         this.videoTrack = videoTrack;
         this.videoTrackInfo = videoTrackInfo;
+        this.audioSamplesInterceptor = interceptor;
     }
 
     protected void start(File file) throws Exception {
@@ -50,15 +58,19 @@ public class MediaRecorderImpl {
                     videoTrackInfo
             );
             videoTrack.addSink(videoAudioFileRenderer);
+            audioSamplesInterceptor.attachCallback(id, videoAudioFileRenderer);
 
             Log.i(TAG, "Started media recorder! " + videoAudioFileRenderer.toString());
         }
     }
 
     protected File stop() {
-        // Remove sink from videoTrack (https://chromium.googlesource.com/external/webrtc/+/HEAD/sdk/android/api/org/webrtc/VideoTrack.java#49)
-        // Release videoAudioFileRenderer, and set to null
+        videoTrack.removeSink(videoAudioFileRenderer);
+        videoAudioFileRenderer.release();
+        videoAudioFileRenderer = null;
 
-       return file;
+        audioSamplesInterceptor.detachCallback(id);
+
+        return file;
     }
 }
