@@ -41,6 +41,8 @@ import java.util.concurrent.ExecutionException;
 public class WebRTCModule extends ReactContextBaseJavaModule {
     static final String TAG = WebRTCModule.class.getCanonicalName();
 
+    private AudioDeviceModule audioDeviceModule;
+
     PeerConnectionFactory mFactory;
     VideoEncoderFactory mVideoEncoderFactory;
     VideoDecoderFactory mVideoDecoderFactory;
@@ -61,7 +63,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
 
         WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
 
-        AudioDeviceModule adm = options.audioDeviceModule;
+        audioDeviceModule = options.audioDeviceModule;
         VideoEncoderFactory encoderFactory = options.videoEncoderFactory;
         VideoDecoderFactory decoderFactory = options.videoDecoderFactory;
         Loggable injectableLogger = options.injectableLogger;
@@ -91,15 +93,15 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             }
         }
 
-        if (adm == null) {
-            adm = JavaAudioDeviceModule.builder(reactContext).setEnableVolumeLogger(false).createAudioDeviceModule();
+        if (audioDeviceModule == null) {
+            audioDeviceModule = JavaAudioDeviceModule.builder(reactContext).setEnableVolumeLogger(false).createAudioDeviceModule();
         }
 
         Log.d(TAG, "Using video encoder factory: " + encoderFactory.getClass().getCanonicalName());
         Log.d(TAG, "Using video decoder factory: " + decoderFactory.getClass().getCanonicalName());
 
         mFactory = PeerConnectionFactory.builder()
-                           .setAudioDeviceModule(adm)
+                           .setAudioDeviceModule(audioDeviceModule)
                            .setVideoEncoderFactory(encoderFactory)
                            .setVideoDecoderFactory(decoderFactory)
                            .createPeerConnectionFactory();
@@ -1349,8 +1351,11 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             // Get track info
             HashMap<String, Integer> videoTrackInfo = getUserMediaImpl.getVideoTrackInfo(videoTrack);
 
+            // Create new audio interceptor
+            AudioSamplesInterceptor audioSamplesInterceptor = new AudioSamplesInterceptor();
+
             // Create new media recorder
-            MediaRecorderImpl recorder = new MediaRecorderImpl(recorderId, videoTrack, videoTrackInfo);
+            MediaRecorderImpl recorder = new MediaRecorderImpl(recorderId, videoTrack, videoTrackInfo, audioSamplesInterceptor);
             mediaRecorders.put(recorderId, recorder);
         });
     }
