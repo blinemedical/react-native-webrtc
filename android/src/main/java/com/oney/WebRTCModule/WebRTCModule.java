@@ -42,6 +42,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     static final String TAG = WebRTCModule.class.getCanonicalName();
 
     private AudioDeviceModule audioDeviceModule;
+    private final AudioSamplesInterceptor audioSamplesInterceptor;
 
     PeerConnectionFactory mFactory;
     VideoEncoderFactory mVideoEncoderFactory;
@@ -64,6 +65,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
 
         audioDeviceModule = options.audioDeviceModule;
+        audioSamplesInterceptor = new AudioSamplesInterceptor();
         VideoEncoderFactory encoderFactory = options.videoEncoderFactory;
         VideoDecoderFactory decoderFactory = options.videoDecoderFactory;
         Loggable injectableLogger = options.injectableLogger;
@@ -94,7 +96,11 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         }
 
         if (audioDeviceModule == null) {
-            audioDeviceModule = JavaAudioDeviceModule.builder(reactContext).setEnableVolumeLogger(false).createAudioDeviceModule();
+            audioDeviceModule = JavaAudioDeviceModule
+                    .builder(reactContext)
+                    .setEnableVolumeLogger(false)
+                    .setSamplesReadyCallback(audioSamplesInterceptor)
+                    .createAudioDeviceModule();
         }
 
         Log.d(TAG, "Using video encoder factory: " + encoderFactory.getClass().getCanonicalName());
@@ -1350,9 +1356,6 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             
             // Get track info
             HashMap<String, Integer> videoTrackInfo = getUserMediaImpl.getVideoTrackInfo(videoTrack);
-
-            // Create new audio interceptor
-            AudioSamplesInterceptor audioSamplesInterceptor = new AudioSamplesInterceptor();
 
             // Create new media recorder
             MediaRecorderImpl recorder = new MediaRecorderImpl(recorderId, videoTrack, videoTrackInfo, audioSamplesInterceptor);
