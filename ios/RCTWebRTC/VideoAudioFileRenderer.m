@@ -1,10 +1,3 @@
-//
-//  VideoAudioFileRenderer.m
-//  RCTWebRTC
-//
-//  Created by Stephen Higley on 5/17/24.
-//
-
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 #import <React/RCTLog.h>
