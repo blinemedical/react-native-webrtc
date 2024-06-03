@@ -88,7 +88,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peerConnectionInit
             ret = NO;
             return;
         }
-        
+
         peerConnection.dataChannels = [NSMutableDictionary new];
         peerConnection.reactTag = objectID;
         peerConnection.remoteStreams = [NSMutableDictionary new];
