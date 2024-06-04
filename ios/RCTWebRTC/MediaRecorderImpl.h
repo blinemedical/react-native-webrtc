@@ -12,7 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong) RTCAudioTrack* _Nullable audioTrack;
 
 
-- (instancetype _Nonnull) initWithVideoTrack:(RTCVideoTrack* _Nullable)video
+- (instancetype _Nonnull) initWithVideoTrack:(RTCVideoTrack* _Nonnull)video
+                                  videoTrackSettings: (NSDictionary* _Nonnull)videoSettings
                                   audioTrack:(RTCAudioTrack* _Nullable)audio;
 
 - (void) start:(NSURL* _Nonnull)path;
